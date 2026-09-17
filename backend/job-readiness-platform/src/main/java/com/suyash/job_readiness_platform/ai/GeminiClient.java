@@ -1,8 +1,10 @@
 package com.suyash.job_readiness_platform.ai;
 
+import com.suyash.job_readiness_platform.exception.AiServiceUnavailableException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.Duration;
 import java.util.List;
@@ -24,29 +26,36 @@ public class GeminiClient {
     }
 
     public String generateJson(String prompt, Map<String, Object> responseSchema) {
-        Map<String, Object> body = Map.of(
-                "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
-                "generationConfig", Map.of(
-                        "responseMimeType", "application/json",
-                        "responseSchema", responseSchema,
-                        "temperature", 0.2
-                )
-        );
-
-        Map<String, Object> response = webClient.post()
-                .uri("/models/{model}:generateContent", model)
-                .header("x-goog-api-key", apiKey)
-                .bodyValue(body)
-                .retrieve()
-                .bodyToMono(Map.class)
-                .timeout(Duration.ofSeconds(20))
-                .block();
-
-        return extractText(response);
+        try {
+            Map<String, Object> body = Map.of(
+                    "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
+                    "generationConfig", Map.of(
+                            "responseMimeType", "application/json",
+                            "responseSchema", responseSchema,
+                            "temperature", 0.2
+                    )
+            );
+            Map<String, Object> response = webClient.post()
+                    .uri("/models/{model}:generateContent", model)
+                    .header("x-goog-api-key", apiKey)
+                    .bodyValue(body)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .timeout(Duration.ofSeconds(20))
+                    .block();
+            return extractText(response);
+        } catch (WebClientResponseException e) {
+            throw new AiServiceUnavailableException("Gemini API is currently unavailable, please try again shortly", e);
+        } catch (Exception e) {
+            throw new AiServiceUnavailableException("Gemini API request timed out or failed", e);
+        }
     }
 
     @SuppressWarnings("unchecked")
     private String extractText(Map<String, Object> response) {
+        if (response == null || !response.containsKey("candidates")) {
+            throw new AiServiceUnavailableException("Received empty response from Gemini API", null);
+        }
         List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
         Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
         List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");

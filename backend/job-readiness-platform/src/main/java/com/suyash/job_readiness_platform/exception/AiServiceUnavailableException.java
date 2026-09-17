@@ -1,0 +1,2 @@
+package com.suyash.job_readiness_platform.exception;
+public class AiServiceUnavailableException extends RuntimeException { public AiServiceUnavailableException(String m, Throwable c) { super(m, c); } }

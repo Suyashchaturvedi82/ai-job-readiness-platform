@@ -7,10 +7,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/job-descriptions")
@@ -22,5 +21,9 @@ public class JobDescriptionController {
     public ResponseEntity<JobDescriptionResponse> create(@Valid @RequestBody CreateJdRequest request,
                                                          Authentication authentication) {
         return ResponseEntity.ok(jdService.create(authentication.getName(), request));
+    }
+    @GetMapping
+    public ResponseEntity<List<JobDescriptionResponse>> getAll(Authentication authentication) {
+        return ResponseEntity.ok(jdService.listMine(authentication.getName()));
     }
 }

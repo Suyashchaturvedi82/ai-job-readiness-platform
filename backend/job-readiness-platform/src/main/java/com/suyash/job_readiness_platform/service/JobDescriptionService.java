@@ -10,6 +10,8 @@ import com.suyash.job_readiness_platform.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class JobDescriptionService {
@@ -27,5 +29,10 @@ public class JobDescriptionService {
                 .build();
         jdRepository.save(jd);
         return new JobDescriptionResponse(jd.getId(), jd.getTitle(), jd.getCompany());
+    }
+    public List<JobDescriptionResponse> listMine(String email) {
+        return jdRepository.findByUserEmailOrderByCreatedAtDesc(email).stream()
+                .map(jd -> new JobDescriptionResponse(jd.getId(), jd.getTitle(), jd.getCompany()))
+                .toList();
     }
 }

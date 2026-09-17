@@ -12,6 +12,8 @@ import com.suyash.job_readiness_platform.dto.ResumeResponse;
 import com.suyash.job_readiness_platform.exception.FileParseException;
 import com.suyash.job_readiness_platform.exception.ResourceNotFoundException;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ResumeService {
@@ -40,5 +42,9 @@ public class ResumeService {
                 .build();
         resumeRepository.save(resume);
         return new ResumeResponse(resume.getId(), resume.getFileName());
+    }
+    public List<ResumeResponse> listMine(String email) {
+        return resumeRepository.findByUserEmailOrderByUploadedAtDesc(email).stream()
+                .map(r -> new ResumeResponse(r.getId(), r.getFileName())).toList();
     }
 }
