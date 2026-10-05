@@ -23,6 +23,7 @@ export default function Login() {
 
   return (
     <div className="auth-page">
+      <div className="auth-card">
       <h1>Login</h1>
       <form onSubmit={handleSubmit}>
         <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -31,6 +32,7 @@ export default function Login() {
         <button type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
       </form>
       <p>No account? <Link to="/register">Register</Link></p>
+      </div>
     </div>
   );
 }

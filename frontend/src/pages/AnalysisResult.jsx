@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import client from '../api/client';
+import ProgressRing from '../components/ProgressRing';
 
 export default function AnalysisResult() {
   const { id } = useParams();
@@ -22,7 +23,10 @@ export default function AnalysisResult() {
 
   return (
     <div className="analysis-result">
-      <h1>Readiness Score: {analysis.readinessScore}%</h1>
+     <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+  <ProgressRing value={analysis.readinessScore} />
+  <div><h2>Your Readiness Score</h2><p style={{ color: 'var(--text-dim)' }}>Based on skill match with this job</p></div>
+</div>
       <table>
         <thead><tr><th>Skill</th><th>Status</th><th>Priority</th></tr></thead>
         <tbody>
