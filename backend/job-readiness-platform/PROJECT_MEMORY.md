@@ -5,14 +5,8 @@
 AI Job Readiness & Interview Intelligence Platform — matches a candidate's
 resume/skills against a job description, scores readiness, generates a prep
 roadmap, and runs an AI mock interview.
-
 ## 2. Tech stack
-- Backend: Java 21, Spring Boot 3.x, Spring Security, Spring Data JPA, Lombok
-- Frontend: React (Vite), Axios, React Router
-- DB: PostgreSQL 16 (+ pgvector extension — added Day 4)
-- Cache/session: Redis 7
-- AI: Google Gemini API (structured JSON output)
-- Infra: Docker Compose (local), Render/Railway + Vercel (deploy, Day 5)
+(add:) pgvector (semantic skill matching), gemini-embedding-001, Render (backend+DB+Redis), Vercel (frontend)
 
 ## 3. Architecture
 React → Spring Boot REST API → Controller → Service → Repository → PostgreSQL.
@@ -26,36 +20,34 @@ backend/   (Spring Boot, Maven)
 frontend/  (React, Vite)
 docker-compose.yml
 
-## 5. Database entities (current)
-User, Resume, JobDescription, Skill, Analysis, AnalysisSkill — all implemented,
-Flyway-managed (V1__init_schema.sql). RoadmapItem, InterviewSession,
-InterviewQuestion, InterviewAnswer, Evaluation planned for Day 4 (V2 migration).
-## 6. API endpoints implemented so far
-| Method | Path | Auth? | Purpose |
-|---|---|---|---|
-| POST | /api/auth/register | No | Register new user |
-| POST | /api/auth/login | No | Login, get JWT |
-| GET | /api/users/me | Yes | Verify current authenticated user |
-| POST | /api/resumes | Yes | Upload resume (multipart), Tika text extraction |
-| POST | /api/job-descriptions | Yes | Paste JD text |
-| POST | /api/analyses | Yes | Extract skills (cached), compute gap + readiness score |
+## 5. Database entities (current) — COMPLETE
+User, Resume, JobDescription, Skill (+embedding vector(768)), Analysis, AnalysisSkill,
+RoadmapItem, InterviewSession, InterviewQuestion, InterviewAnswer, Evaluation.
+Migrations: V1 (core), V2 (pgvector + roadmap), V3 (interview tables).
+
+## 6. API endpoints — COMPLETE
+POST /api/auth/register | POST /api/auth/login | GET /api/users/me
+POST /api/resumes | GET /api/resumes
+POST /api/job-descriptions | GET /api/job-descriptions
+POST /api/analyses | GET /api/analyses/{id} | POST /api/analyses/{id}/roadmap
+POST /api/interview-sessions | POST /api/interview-sessions/{id}/questions/next
+POST /api/interview-sessions/questions/{questionId}/answers
 ## 7. Environment variables needed (names only — never commit values)
 - GEMINI_API_KEY
 - JWT_SECRET
 - DB_URL / DB_USER / DB_PASSWORD
 - REDIS_HOST / REDIS_PORT
 
-## 8. Decisions & why (running log)
-- (Day 2 items already listed)
-- Gemini skill extraction cached in Redis by SHA-256 hash of the input text —
-  avoids repeat AI cost/latency for identical resume/JD content.
-- Skill-gap comparison and readiness scoring are pure Java (SkillGapService),
-  unit-tested without Spring context — not delegated to the LLM.
-- Ownership check (IDOR prevention) in AnalysisService — resume/JD must belong
-  to the authenticated user (derived from JWT), never trust a client-sent userId.
-- Naive lowercase skill-name matching is a known gap — synonym matching
-  (React vs ReactJS) deferred to Day 4's embeddings work.
-faster.
+## 8. Decisions & why (running log — Day 4/5 additions)
+- Semantic skill matching (pgvector + gemini-embedding-001) only runs as a FALLBACK when
+  exact-name match fails — keeps most analyses free of extra embedding calls.
+- @Transactional self-invocation bug fixed by splitting AnalysisService (orchestration,
+  no @Transactional) from AnalysisPersistenceService (DB writes, @Transactional) — Spring's
+  proxy only intercepts calls that go through another bean, not calls to `this`.
+- Interview session context cached in Redis (2h TTL) alongside Postgres persistence —
+  Postgres is source of truth, Redis avoids re-assembling context on every question.
+- JWT stored in localStorage on the frontend — pragmatic for MVP; httpOnly cookies would
+  be the production-hardened choice (documented trade-off, not implemented).
 
 ## 9. Known issues / TODO
 - No entities/DB tables yet (Day 2)
@@ -81,3 +73,14 @@ faster.
 - Redis caching of skill extraction (content-hash keyed, 7-day TTL)
 - Deterministic skill-gap engine + readiness score (unit tested)
 - IDOR protection on /api/analyses
+- ### Day 4
+- pgvector setup + gemini-embedding-001 client, exact+semantic skill matching
+- Roadmap generation (single batched Gemini call)
+- Mock interview core: sessions/questions/answers/evaluations, Redis context cache
+- Fixed @Transactional self-invocation bug in AnalysisService
+
+### Day 5
+- CORS configured for frontend origin
+- React frontend: auth, dashboard, analysis results, mock interview UI, 3D hero (lazy-loaded)
+- Full docker-compose (postgres+redis+backend+frontend), multi-stage Dockerfiles
+- Deployed: backend+DB+Redis on Render, frontend on Vercel

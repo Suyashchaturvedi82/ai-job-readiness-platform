@@ -18,7 +18,7 @@ public class GeminiClient {
     @Value("${gemini.api-key}")
     private String apiKey;
 
-    @Value("${gemini.model}")
+    @Value("${gemini-3.6-flash")
     private String model;
 
     public GeminiClient(WebClient.Builder builder) {
