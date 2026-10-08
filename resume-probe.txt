@@ -1,0 +1,4 @@
+Suyash Chaturvedi
+Software Engineer
+Skills: Java, Spring Boot, React, PostgreSQL, Docker, Git
+Experience: Built REST APIs, microservices, CI/CD pipelines.

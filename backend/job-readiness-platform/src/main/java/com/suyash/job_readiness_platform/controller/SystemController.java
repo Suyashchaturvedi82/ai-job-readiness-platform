@@ -12,11 +12,20 @@ import java.util.Map;
 @RequestMapping("/api")
 public class SystemController {
 
-    @Value("${gemini.model:gemini-3.6-flash}")
+    @Value("${gemini.model:gemini-flash-latest}")
     private String geminiModel;
+
+    @Value("${gemini.api-key:}")
+    private String geminiApiKey;
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
-        return ResponseEntity.ok(Map.of("status", "ok", "service", "ai-job-readiness-platform", "aiModel", geminiModel));
+        // Never expose the key itself — only whether one was loaded from .env/env vars.
+        boolean keyLoaded = geminiApiKey != null && !geminiApiKey.isBlank();
+        return ResponseEntity.ok(Map.of(
+                "status", "ok",
+                "service", "ai-job-readiness-platform",
+                "aiModel", geminiModel,
+                "aiKeyConfigured", String.valueOf(keyLoaded)));
     }
 }

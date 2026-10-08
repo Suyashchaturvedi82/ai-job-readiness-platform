@@ -1,25 +1,34 @@
 import { createContext, useContext, useState, useCallback } from 'react';
+import Icon from '../components/Icon';
 
 const ToastContext = createContext(null);
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
+
   const showToast = useCallback((message, type = 'error') => {
-    const id = Date.now();
-    setToasts(t => [...t, { id, message, type }]);
-    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4000);
+    const id = Date.now() + Math.random();
+    setToasts((t) => [...t, { id, message, type }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000);
   }, []);
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div style={{ position: 'fixed', bottom: 20, right: 20, display: 'flex', flexDirection: 'column', gap: 8, zIndex: 999 }}>
-        {toasts.map(t => (
-          <div key={t.id} className="card" style={{ borderColor: t.type === 'error' ? '#ef4444' : '#22c55e' }}>
-            {t.message}
+      <div className="toast-stack" role="status" aria-live="polite">
+        {toasts.map((t) => (
+          <div key={t.id} className={`toast ${t.type}`}>
+            <span className="toast-icon">
+              <Icon name={t.type === 'success' ? 'check' : 'shield'} size={17} />
+            </span>
+            <span>{t.message}</span>
           </div>
         ))}
       </div>
     </ToastContext.Provider>
   );
 }
-export function useToast() { return useContext(ToastContext); }
+
+export function useToast() {
+  return useContext(ToastContext);
+}

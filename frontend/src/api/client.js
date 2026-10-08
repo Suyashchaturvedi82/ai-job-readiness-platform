@@ -21,4 +21,24 @@ client.interceptors.response.use(
   }
 );
 
+/**
+ * Extracts a human-readable message from an axios error.
+ * Backend error shapes handled: { error }, { message }, and field maps
+ * like { password: "Password must be at least 8 characters" }.
+ */
+export function errorMessage(err, fallback = 'Something went wrong') {
+  if (!err.response) {
+    return 'Cannot reach the server — is the backend running on port 8080?';
+  }
+  const data = err.response.data;
+  if (typeof data === 'string' && data.trim()) return data;
+  if (data && typeof data === 'object') {
+    if (typeof data.error === 'string') return data.error;
+    if (typeof data.message === 'string') return data.message;
+    const first = Object.values(data).find((v) => typeof v === 'string');
+    if (first) return first;
+  }
+  return fallback;
+}
+
 export default client;
