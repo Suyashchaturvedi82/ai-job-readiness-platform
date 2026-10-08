@@ -71,3 +71,8 @@ Do not commit `.env` files or real API keys. If a key has ever been exposed outs
 ## Validation notes
 
 The source has been syntax-checked for the frontend JavaScript/JSX and backend Java sources. Full Maven/npm runtime validation could not be completed in this sandbox because outbound package/network access is unavailable and Docker is not installed here. The final archive intentionally excludes installed `node_modules`, build outputs, IDE metadata, and real `.env` files; run a clean dependency install/build in an environment with network access.
+
+## 🔗 Links
+
+- 🌐 Live Demo: (https://ai-job-readiness-platform.vercel.app/)
+- 👨‍💻 Author: [Suyash Chaturvedi](https://github.com/Suyashchaturvedi82)
